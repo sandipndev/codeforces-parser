@@ -1,14 +1,7 @@
 #!/usr/bin/python
 
-# Python 2->3 libraries that were renamed.
-try:
-    from urllib2 import urlopen
-except:
-    from urllib.request import urlopen
-try:
-    from HTMLParser import HTMLParser
-except:
-    from html.parser import HTMLParser
+from urllib.request import urlopen
+from html.parser import HTMLParser
 
 # Other libraries.
 from sys import argv
@@ -21,38 +14,25 @@ import argparse
 # User modifiable constants
 ###########################
 language_params = {
-        'c++14' : {
-            'TEMPLATE'    : 'main.cc',
-            'DEBUG_FLAGS' : '-DDEBUG',
-            'COMPILE_CMD' : 'g++ -g -std=c++14 -Wall $DBG',
-            'RUN_CMD'     : './a.out'
-            },
-        'go'    : {
-            'TEMPLATE'    : 'main.go',
-            'COMPILE_CMD' : 'go build $DBG -o a.out',
-            'DEBUG_FLAGS' : '''"-ldflags '-X=main.DEBUG=Y'"''',
-            'RUN_CMD'     : './a.out'
-            },
-        'kotlin'    : {
-            'TEMPLATE'    : 'main.kt',
-            'COMPILE_CMD' : 'kotlinc -include-runtime -d out.jar',
-            'DEBUG_FLAGS' : "-d",
-            'RUN_CMD'     : 'java -jar out.jar $DBG'
-            },
-        }
+    'c++14': {
+        'TEMPLATE': 'main.cpp',
+        'DEBUG_FLAGS': '-DDEBUG',
+        'COMPILE_CMD': 'g++ -g -std=c++14 -Wall $DBG',
+        'RUN_CMD': './a.out'
+    },
+}
 
-SAMPLE_INPUT='input'
-SAMPLE_OUTPUT='output'
-MY_OUTPUT='my_output'
+SAMPLE_INPUT = 'input'
+SAMPLE_OUTPUT = 'output'
+MY_OUTPUT = 'my_output'
 
 # Do not modify these!
-VERSION='CodeForces Parser v1.5.1: https://github.com/johnathan79717/codeforces-parser'
-RED_F='\033[31m'
-GREEN_F='\033[32m'
-BOLD='\033[1m'
-NORM='\033[0m'
-TIME_CMD='`which time` -o time.out -f "(%es)"'
-TIME_AP='`cat time.out`'
+RED_F = '\033[31m'
+GREEN_F = '\033[32m'
+BOLD = '\033[1m'
+NORM = '\033[0m'
+TIME_CMD = '`which time` -o time.out -f "(%es)"'
+TIME_AP = '`cat time.out`'
 
 # Problems parser.
 class CodeforcesProblemParser(HTMLParser):
@@ -114,10 +94,11 @@ class CodeforcesContestParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if self.name == '' and attrs == [('style', 'color: black'), ('href', '/contest/%s' % (self.contest))]:
-                self.start_contest = True
+            self.start_contest = True
         elif tag == 'option':
             if len(attrs) == 1:
-                regexp = re.compile(r"'[A-Z][0-9]?'") # The attrs will be something like: ('value', 'X'), or ('value', 'X1')
+                # The attrs will be something like: ('value', 'X'), or ('value', 'X1')
+                regexp = re.compile(r"'[A-Z][0-9]?'")
                 string = str(attrs[0])
                 search = regexp.search(string)
                 if search is not None:
@@ -162,26 +143,26 @@ def generate_test_script(folder, language, num_tests, problem):
     with open(folder + 'test.sh', 'w') as test:
         test.write(
             ('#!/bin/bash\n'
-            'DBG=""\n'
-            'while getopts ":d" opt; do\n'
-            '  case $opt in\n'
-            '    d)\n'
-            '      echo "-d was selected; compiling in DEBUG mode!" >&2\n'
-            '      DBG=' + param["DEBUG_FLAGS"] +'\n'
-            '      ;;\n'
-            '    \?)\n'
-            '      echo "Invalid option: -$OPTARG" >&2\n'
-            '      ;;\n'
-            '  esac\n'
-            'done\n'
-            '\n'
-            'if ! ' + param["COMPILE_CMD"] +' {0}.{1}; then\n'
-            '    exit\n'
-            'fi\n'
-            'INPUT_NAME='+SAMPLE_INPUT+'\n'
-            'OUTPUT_NAME='+SAMPLE_OUTPUT+'\n'
-            'MY_NAME='+MY_OUTPUT+'\n'
-            'rm -R $MY_NAME* &>/dev/null\n').format(problem, param["TEMPLATE"].split('.')[1]))
+             'DBG=""\n'
+             'while getopts ":d" opt; do\n'
+             '  case $opt in\n'
+             '    d)\n'
+             '      echo "-d was selected; compiling in DEBUG mode!" >&2\n'
+             '      DBG=' + param["DEBUG_FLAGS"] + '\n'
+             '      ;;\n'
+             '    \?)\n'
+             '      echo "Invalid option: -$OPTARG" >&2\n'
+             '      ;;\n'
+             '  esac\n'
+             'done\n'
+             '\n'
+             'if ! ' + param["COMPILE_CMD"] + ' {0}.{1}; then\n'
+             '    exit\n'
+             'fi\n'
+             'INPUT_NAME='+SAMPLE_INPUT+'\n'
+             'OUTPUT_NAME='+SAMPLE_OUTPUT+'\n'
+             'MY_NAME='+MY_OUTPUT+'\n'
+             'rm -R $MY_NAME* &>/dev/null\n').format(problem, param["TEMPLATE"].split('.')[1]))
         test.write(
             'for test_file in $INPUT_NAME*\n'
             'do\n'
@@ -216,10 +197,9 @@ def generate_test_script(folder, language, num_tests, problem):
 
 # Main function.
 def main():
-    print (VERSION)
     parser = argparse.ArgumentParser()
     parser.add_argument('--language', '-l', default="c++14", help="The programming language you want to use "
-            "(c++14, go)")
+                        "(c++14, go)")
     parser.add_argument('contest', help="")
     args = parser.parse_args()
 
@@ -227,24 +207,27 @@ def main():
     language = args.language
 
     # Find contest and problems.
-    print ('Parsing contest %s for language %s, please wait...' % (contest, language))
+    print('Parsing contest %s for language %s, please wait...' %
+          (contest, language))
     content = parse_contest(contest)
-    print (BOLD+GREEN_F+'*** Round name: '+content.name+' ***'+NORM)
-    print ('Found %d problems!' % (len(content.problems)))
+    print(BOLD+GREEN_F+'*** Round name: '+content.name+' ***'+NORM)
+    print('Found %d problems!' % (len(content.problems)))
 
     # Find problems and test cases.
     TEMPLATE = language_params[language]["TEMPLATE"]
     for index, problem in enumerate(content.problems):
-        print ('Downloading Problem %s: %s...' % (problem, content.problem_names[index]))
+        print('Downloading Problem %s: %s...' %
+              (problem, content.problem_names[index]))
         folder = '%s-%s/%s/' % (contest, language, problem)
         call(['mkdir', '-p', folder])
-        call(['cp', '-n', TEMPLATE, '%s/%s.%s' % (folder, problem, TEMPLATE.split('.')[1])])
+        call(['cp', '-n', TEMPLATE, '%s/%s.%s' %
+              (folder, problem, TEMPLATE.split('.')[1])])
         num_tests = parse_problem(folder, contest, problem)
         print('%d sample test(s) found.' % num_tests)
         generate_test_script(folder, language, num_tests, problem)
-        print ('========================================')
+        print('========================================')
 
-    print ('Use ./test.sh to run sample tests in each directory.')
+    print('Use ./test.sh to run sample tests in each directory.')
 
 
 if __name__ == '__main__':
