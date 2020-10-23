@@ -6,7 +6,6 @@ from html.parser import HTMLParser
 # Other libraries.
 from sys import argv
 from subprocess import call
-from functools import partial, wraps
 import re
 import argparse
 
@@ -213,12 +212,14 @@ def main():
     print(BOLD+GREEN_F+'*** Round name: '+content.name+' ***'+NORM)
     print('Found %d problems!' % (len(content.problems)))
 
+    content.name = '-'.join((re.sub(r'(?! )[\W_]+', '', content.name)).lower().split())
+
     # Find problems and test cases.
     TEMPLATE = language_params[language]["TEMPLATE"]
     for index, problem in enumerate(content.problems):
         print('Downloading Problem %s: %s...' %
               (problem, content.problem_names[index]))
-        folder = '%s-%s/%s/' % (contest, language, problem)
+        folder = '%s/%s/' % (content.name, problem)
         call(['mkdir', '-p', folder])
         call(['cp', '-n', TEMPLATE, '%s/%s.%s' %
               (folder, problem, TEMPLATE.split('.')[1])])
